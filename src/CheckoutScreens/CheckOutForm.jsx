@@ -1,64 +1,105 @@
-export default function CheckOutForm() {
-          return (
-                    <div className="billing-screen w-full lg:w-6/12">
-                              <h1 className="text-3xl tracking-tighter lg:text-left text-center font-bold mb-10 lg:mt-0 mt-10">Billing details</h1>
-                              <form>
-                                        <div className="lg:flex lg:space-x-4">
-                                                  <div className="mb-4 lg:w-1/2">
-                                                            <label htmlFor="fname" className="block mb-2 text-sm font-medium text-gray-900">First Name</label>
-                                                            <input type="text" id="fname" className="focus:border-[#B88E2F] border-2 outline-none text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Shreyash" required />
-                                                  </div>
-                                                  <div className="mb-4 lg:w-1/2">
-                                                            <label htmlFor="lname" className="block mb-2 text-sm font-medium text-gray-900">Last Name</label>
-                                                            <input type="text" id="lname" className="focus:border-[#B88E2F] border-2 outline-none text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Sinha" required />
-                                                  </div>
-                                        </div>
+import { useState, useEffect } from 'react';
+import { useAuth } from '../AuthContext';
+import { FaHome, FaBriefcase, FaMapMarkerAlt, FaPlus } from 'react-icons/fa';
 
-                                        <div className="mb-4">
-                                                  <label htmlFor="company-name" className="block mb-2 text-sm font-medium text-gray-90">Company Name [Optional]</label>
-                                                  <input type="text" id="company-name" className="focus:border-[#B88E2F] border-2 outline-none text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Punjab National Bank" required />
-                                        </div>
+export default function CheckOutForm({ onAddressSelect }) {
+  const { user } = useAuth();
+  const [selectedAddressId, setSelectedAddressId] = useState(
+    user?.addresses?.find(addr => addr.isDefault)?._id || user?.addresses?.[0]?._id || null
+  );
 
-                                        <div className="mb-4">
-                                                  <label htmlFor="countries" className="block mb-2 text-sm font-medium text-gray-900">State</label>
-                                                  <select id="countries" className=" outline-none focus:border-[#B88E2F] border-2 text-gray-900 text-sm rounded-lg block w-full p-2.5 ">
-                                                            <option value="Choose">Choose a State</option>
-                                                            <option value="US">Uttar Pradesh</option>
-                                                            <option value="CA">Karnataka</option>
-                                                            <option value="FR">Madhya Pradesh</option>
-                                                            <option value="DE">Maharashtra</option>
-                                                  </select>
-                                        </div>
-                                        <div className="mb-4">
-                                                  <label htmlFor="street-address" className="block mb-2 text-sm font-medium text-gray-90">Address</label>
-                                                  <input type="text" id="street-address" className="focus:border-[#B88E2F] border-2 outline-none text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Padmavati Marketing, Banashankari 1st Stage" required />
-                                        </div>
+  useEffect(() => {
+    if (selectedAddressId && onAddressSelect) {
+      const selectedAddress = user?.addresses?.find(addr => addr._id === selectedAddressId);
+      if (selectedAddress) {
+        onAddressSelect(selectedAddress);
+      }
+    }
+  }, []);
 
-                                        <div className="mb-4">
-                                                  <label htmlFor="town" className="block mb-2 text-sm font-medium text-gray-90">Town</label>
-                                                  <input type="text" id="town" className="focus:border-[#B88E2F] border-2 outline-none text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Bengaluru South" required />
-                                        </div>
+  const handleAddressSelect = (addressId) => {
+    setSelectedAddressId(addressId);
+    const selectedAddress = user?.addresses?.find(addr => addr._id === addressId);
+    if (onAddressSelect) {
+      onAddressSelect(selectedAddress);
+    }
+  };
 
-                                        <div className="mb-4">
-                                                  <label htmlFor="zipcode" className="block mb-2 text-sm font-medium text-gray-90">Zip Code</label>
-                                                  <input type="number" id="zipcode" className="focus:border-[#B88E2F] border-2 outline-none text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="560019" required />
-                                        </div>
+  const getIconForLabel = (label) => {
+    switch (label.toLowerCase()) {
+      case 'home':
+        return <FaHome className="text-[#B88E2F]" />;
+      case 'work':
+        return <FaBriefcase className="text-[#B88E2F]" />;
+      default:
+        return <FaMapMarkerAlt className="text-[#B88E2F]" />;
+    }
+  };
 
-                                        <div className="mb-4">
-                                                  <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-90">Phone</label>
-                                                  <input type="tel" id="phone" className="focus:border-[#B88E2F] border-2 outline-none text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="7434247423" required />
-                                        </div>
+  return (
+    <div className="billing-screen w-full lg:w-8/12 lg:pr-4">
+      <h1 className="text-2xl tracking-tight lg:text-left text-center font-bold lg:mt-0 ">
+        Select a delivery address.
+      </h1>
+      
 
-                                        <div className="mb-4">
-                                                  <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-90">Email</label>
-                                                  <input type="email" id="email" className="focus:border-[#B88E2F] border-2 outline-none text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="shreyash.cs22@bmsce.ac.in" required />
-                                        </div>
-                                        <div className="mb-4">
-                                                  <label htmlFor="extra-info" className="block mb-2 text-sm font-medium text-gray-90">Additonal Information</label>
-                                                  <textarea name="extra-info" id="extra-info" placeholder="Anything else we should know?" className="focus:border-[#B88E2F] border-2 outline-none text-gray-900 text-sm rounded-lg block w-full p-2.5"></textarea>
-                                        </div>
+      {/* Saved Addresses */}
+      <div className="space-y-4 my-6">
+        {user?.addresses && user.addresses.length > 0 ? (
+          user.addresses.map((address) => (
+            <div
+              key={address._id}
+              onClick={() => handleAddressSelect(address._id)}
+              className={`relative border rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                selectedAddressId === address._id
+                  ? 'border-[#B88E2F] bg-gray-50'
+                  : 'border-gray-200 hover:border-[#d4a574] hover:bg-gray-50'
+              }`}
+            >
+              {/* Radio Button */}
+              <div className="flex tracking-tight items-start space-x-3">
+                <div className="flex-shrink-0 mt-1">
+                  <div
+                    className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                      selectedAddressId === address._id
+                        ? 'border-[#B88E2F] bg-[#B88E2F]'
+                        : 'border-gray-300'
+                    }`}
+                  >
+                    {selectedAddressId === address._id && (
+                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                    )}
+                  </div>
+                </div>
 
-                              </form>
-                    </div>
-          )
+                {/* Address Content */}
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-2">
+                    {getIconForLabel(address.label)}
+                    <span className="font-semibold text-gray-900 capitalize">
+                      {address.label}
+                    </span>
+                    {address.isDefault && (
+                      <span className="text-xs bg-[#B88E2F] text-white px-2 py-0.5 rounded-full">
+                        Default
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                    {address.address}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <FaMapMarkerAlt className="mx-auto text-4xl mb-3 text-gray-300" />
+            <p>No saved addresses found</p>
+          </div>
+        )}
+      </div>
+
+    </div>
+  );
 }

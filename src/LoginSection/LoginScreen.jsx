@@ -3,43 +3,49 @@ import Logo from '../assets/Logo.png';
 import LoginImage from '../assets/LoginImage.png';
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
-import { useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { motion } from 'framer-motion';
 
 export default function LoginScreen() {
           const [email, setEmail] = useState('');
           const [password, setPassword] = useState('');
-          const [googleLoading, setgoogleLoading] = useState(false);
-          const [emaiLoading, setEmailLoading] = useState(false);
+          const [googleLoading, setGoogleLoading] = useState(false);
+          const [emailLoading, setEmailLoading] = useState(false);
           const [showNotification, setShowNotification] = useState(false);
-          const [message, setMessage] = useState([""]);
+          const [message, setMessage] = useState('');
           const { login } = useAuth();
           const location = useLocation();
+          const navigate = useNavigate();
 
           useEffect(() => {
                     if (location.state?.message) {
                               setMessage(location.state.message);
+                              window.history.replaceState({}, document.title, window.location.pathname);
                     }
-          }, [location.state?.message]);
+          }, [location.state]);
+
 
           useEffect(() => {
-                    if (message != "") {
+                    if (message) {
                               setShowNotification(true);
                               const timer = setTimeout(() => {
                                         setShowNotification(false);
-                                        setMessage("");
+                                        setMessage('');
                               }, 3000);
                               return () => clearTimeout(timer);
                     }
           }, [message]);
 
-          const navigate = useNavigate();
-          const googlePress = () => {
-                    setgoogleLoading(true);
-                    googleLogin();
+          const showErrorNotification = (msg) => {
+                    setMessage(msg);
+                    setShowNotification(true);
+                    setTimeout(() => {
+                              setShowNotification(false);
+                              setMessage('');
+                    }, 3000);
           };
+
           const googleLogin = useGoogleLogin({
                     onSuccess: async (tokenResponse) => {
                               try {
@@ -48,46 +54,64 @@ export default function LoginScreen() {
                                                             Authorization: `Bearer ${tokenResponse.access_token}`,
                                                   },
                                         });
-                                        const response = await axios.post('https://urbanfest.onrender.com/login', {
+
+                                        const response = await axios.post('  https://urbanfest.onrender.com/login', {
                                                   sub: res.data.sub,
                                                   name: res.data.name,
                                                   email: res.data.email,
                                                   picture: res.data.picture
                                         }, { withCredentials: true });
+
                                         const { user, token } = response.data;
                                         login(user, token);
-                                        navigate("/", { state: { message: `Logged in as ${response.data.user.email}` } });
-
+                                        navigate("/", { state: { message: `Welcome, ${response.data.user.username}` } });
                               } catch (err) {
-                                        console.log("Error detected: " + err);
+                                        console.log("Google login error:", err);
+                                        showErrorNotification(err.response?.data?.message || "Google login failed. Please try again.");
                               } finally {
-                                        setgoogleLoading(false);
+                                        setGoogleLoading(false);
                               }
                     },
-                    onError: () => {
-                              setgoogleLoading(false);
+                    onError: (error) => {
+                              console.log("Google login error:", error);
+                              showErrorNotification("Google login cancelled or failed.");
+                              setGoogleLoading(false);
                     }
           });
 
+          const googlePress = () => {
+                    setGoogleLoading(true);
+                    googleLogin();
+          };
+
           const handleEmailLogin = async (e) => {
-                    setEmailLoading(true);
                     e.preventDefault();
+
+                    // Validation
+                    if (!email || !password) {
+                              showErrorNotification("Both fields are empty.");
+                              return;
+                    }
+
+                    if (!email.includes('@')) {
+                              showErrorNotification("Invalid email address !");
+                              return;
+                    }
+
+                    setEmailLoading(true);
                     try {
-                              const response = await axios.post('https://urbanfest.onrender.com/login', {
+                              const response = await axios.post('  https://urbanfest.onrender.com/login', {
                                         email,
                                         password
                               }, { withCredentials: true });
+
                               const { user, token } = response.data;
                               login(user, token);
-                              navigate("/", { state: { message: `Logged in as ${response.data.user.email}` } });
+                              navigate("/", { state: { message: `Welcome, ${response.data.user.username}` } });
                     } catch (err) {
-                              console.error("Login error:", err);
-                              setMessage("Invalid email or password. Please try again.");
-                              if (err.response && err.response.data) {
-                                        console.error("Login error details:", err.response.data);
-                              } else {
-                                        console.error("An unexpected error occurred:" + err);
-                              }
+                              console.log("Login error:", err);
+                              const errorMsg = err.response?.data?.message || "Invalid email or password. Please try again.";
+                              showErrorNotification(errorMsg);
                     } finally {
                               setEmailLoading(false);
                     }
@@ -95,15 +119,38 @@ export default function LoginScreen() {
 
           return (
                     <div>
+
                               {showNotification && (
-                                        <div className="fixed top-10 left-1/2 transform -translate-x-1/2 bg-[#B88E2F] text-white px-4 py-2 font-inter z-50">
+                                        <motion.div
+                                                  initial={{ y: -100, opacity: 0 }}
+                                                  animate={{ y: 0, opacity: 1 }}
+                                                  exit={{ y: -100, opacity: 0 }}
+                                                  transition={{ duration: 0.3 }}
+                                                  style={{ right: '25%', transform: 'translateX(-50%)' }}
+                                                  className="fixed top-10 md:hidden block bg-[#B88E2F] rounded-lg text-sm text-white text-center px-4 py-2 font-inter z-50"
+                                        >
                                                   {message}
-                                        </div>
+                                        </motion.div>
+
                               )}
-                              <div className="grid grid-cols-1 mx-5 lg:mx-0 lg:grid-cols-2 gap-0 font-inter">
+
+                              {showNotification && (
+                                        <motion.div
+                                                  initial={{ y: -100, opacity: 0, x: '-50%' }}
+                                                  animate={{ y: 0, opacity: 1, x: '-50%' }}
+                                                  exit={{ y: -100, opacity: 0, x: '-50%' }}
+                                                  transition={{ duration: 0.3 }}
+                                                  className="fixed hidden lg:block top-10 left-1/2 bg-[#B88E2F] rounded-lg text-sm text-white text-center px-4 py-2 font-inter z-50"
+                                        >
+                                                  {message}
+                                        </motion.div>
+                              )}
+
+                              <div className="grid grid-cols-1 mx-5 lg:mx-0 lg:grid-cols-2 gap-0 ">
+
                                         <div className="loginScreen">
                                                   <div className="min-h-screen pt-20 text-gray-900 flex lg:items-start justify-center">
-                                                            <div className="max-w-md w-full bg-white sm:rounded-lglg:pr-7">
+                                                            <div className="max-w-md w-full sm:rounded-lg lg:pr-7">
                                                                       <div className="logo-img mb-5 h-12 w-16">
                                                                                 <img src={Logo} alt="Logo-Image" />
                                                                       </div>
@@ -111,45 +158,45 @@ export default function LoginScreen() {
                                                                                 Sign in to your account.
                                                                       </h1>
                                                                       <div className="space-y-6">
-                                                                                <div>
-                                                                                </div>
-                                                                                <div className="space-y-5">
+                                                                                <form onSubmit={handleEmailLogin} className="space-y-5 mt-6" noValidate>
                                                                                           <input
-                                                                                                    className="w-full px-4 py-[8px] shadow-sm border-[2px] border-gray-200 rounded-lg font-medium placeholder-gray-500 text-sm focus:outline-none focus:border-[#B88E2F]"
+                                                                                                    className="w-full px-4 py-[8px]  border border-gray-200 rounded-lg font-medium placeholder-gray-500 text-sm focus:outline-none focus:border-[#B88E2F]"
                                                                                                     type="email"
                                                                                                     placeholder="Email"
                                                                                                     value={email}
                                                                                                     onChange={(e) => setEmail(e.target.value)}
+                                                                                                    disabled={emailLoading}
                                                                                           />
                                                                                           <input
-                                                                                                    className="w-full px-4 py-[8px] shadow-sm rounded-lg border-2 border-gray-200 font-medium placeholder-gray-500 text-sm focus:outline-none focus:border-[#B88E2F]"
+                                                                                                    className="w-full px-4 py-[8px]  rounded-lg border border-gray-200 font-medium placeholder-gray-500 text-sm focus:outline-none focus:border-[#B88E2F]"
                                                                                                     type="password"
                                                                                                     placeholder="Password"
                                                                                                     value={password}
                                                                                                     onChange={(e) => setPassword(e.target.value)}
+                                                                                                    disabled={emailLoading}
                                                                                           />
                                                                                           <button
-                                                                                                    onClick={handleEmailLogin}
-                                                                                                    className="mt-5 tracking-wide font-semibold bg-[#B88E2F] text-gray-100 w-full py-2 rounded-lg hover:bg-[#a0740e] transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none">
-                                                                                                    {emaiLoading ? (
+                                                                                                    type="submit"
+                                                                                                    disabled={emailLoading}
+                                                                                                    className="mt-5 tracking-wide font-semibold bg-[#B88E2F] text-gray-100 w-full py-2 rounded-lg hover:bg-[#a0740e] transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+                                                                                                    {emailLoading ? (
                                                                                                               <div className='py-1'>
                                                                                                                         <div className="border-4 border-white border-t-transparent rounded-full w-6 h-6 animate-spin"></div>
                                                                                                               </div>
-                                                                                                    ) : (<>
-                                                                                                              <span className="ml-3 tracking-tighter">
-                                                                                                                        Sign In
-                                                                                                              </span>
-                                                                                                    </>
+                                                                                                    ) : (
+                                                                                                              <span className="ml-3 tracking-tighter">Sign In</span>
                                                                                                     )}
                                                                                           </button>
-                                                                                          <div className="continue flex justify-between items-center">
-                                                                                                    <div><hr className='bg-black w-12 lg:w-40' /></div>
-                                                                                                    <div><p className='lg:text-sm font-semibold'>Or continue with</p></div>
-                                                                                                    <div><hr className='bg-black w-12 lg:w-40' /></div>
+                                                                                          <div className="continue flex items-center gap-3">
+                                                                                                    <hr className='flex-1 bg-gray-300 h-[1px] border-0' />
+                                                                                                    <p className='text-xs lg:text-sm font-semibold text-gray-600 whitespace-nowrap tracking-tight'>Or continue with</p>
+                                                                                                    <hr className='flex-1 bg-gray-300 h-[1px] border-0' />
                                                                                           </div>
                                                                                           <button
+                                                                                                    type="button"
                                                                                                     onClick={googlePress}
-                                                                                                    className="w-full font-bold px-4 py-[3px] shadow-sm rounded-lg border-2 border-gray-300 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out focus:outline-none hover:shadow hover:border-[#B88E2F]">
+                                                                                                    disabled={googleLoading}
+                                                                                                    className="w-full font-bold px-4 py-[3px]  rounded-lg border border-gray-300 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out focus:outline-none hover:shadow hover:border-[#B88E2F] disabled:opacity-50 disabled:cursor-not-allowed">
                                                                                                     {googleLoading ? (
                                                                                                               <div className='py-1'>
                                                                                                                         <div className="border-4 border-[#B88E2F] border-t-transparent rounded-full w-6 h-6 animate-spin"></div>
@@ -176,22 +223,27 @@ export default function LoginScreen() {
                                                                                                                                             />
                                                                                                                                   </svg>
                                                                                                                         </div>
-                                                                                                                        <span className="ml-4">Sign In with Google</span>
+                                                                                                                        <span className="ml-4 tracking-tight">Sign In with Google</span>
                                                                                                               </>
                                                                                                     )}
                                                                                           </button>
-                                                                                          <p className="text-xs font-medium text-gray-600 text-center">
-                                                                                                    New to UrbanFest? <Link to="/signup" className="text-[#B88E2F]">Sign Up</Link>
+                                                                                          <p className="text-xs font-medium text-gray-600 text-center tracking-tight">
+                                                                                                    New to UrbanFest? <Link to="/signup" className="text-[#B88E2F] hover:underline">Sign Up</Link>
                                                                                           </p>
-                                                                                </div>
+                                                                                </form>
                                                                       </div>
                                                             </div>
                                                   </div>
                                         </div>
                                         <div className="loginImage lg:block hidden">
-                                                  <img src={LoginImage} style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 100%, 0 100%)' }} className='h-screen object-cover w-full' alt="Login-Image" />
+                                                  <img
+                                                            src={LoginImage}
+                                                            style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 100%, 0 100%)' }}
+                                                            className='h-screen object-cover w-full'
+                                                            alt="Login-Image"
+                                                  />
                                         </div>
                               </div>
                     </div>
           );
-};
+}

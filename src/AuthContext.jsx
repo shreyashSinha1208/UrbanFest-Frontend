@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -9,7 +9,6 @@ export const AuthProvider = ({ children }) => {
 
 
     useEffect(() => {
-        // Load user and token from localStorage on initial render
         const storedUser = localStorage.getItem('user');
         const token = localStorage.getItem('authToken');
         if (storedUser && token) {
@@ -19,32 +18,38 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+
     const login = (userData, token) => {
-        const loginTime = new Date().getTime(); // Get the current timestamp
-        const userWithTime = { ...userData, loginTime }; // Add the timestamp to the user data
+        const loginTime = new Date().getTime();
+        const userWithTime = { ...userData, loginTime };
         setUser(userWithTime);
         setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(userWithTime)); // Store user with timestamp in localStorage
-        localStorage.setItem('authToken', token); // Store token in localStorage
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`; // Set default authorization header
+        localStorage.setItem('user', JSON.stringify(userWithTime));
+        localStorage.setItem('authToken', token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     };
+
 
     const logout = () => {
         setUser(null);
         setIsAuthenticated(false);
-        localStorage.removeItem('user'); // Remove user from localStorage
-        localStorage.removeItem('authToken'); // Remove token from localStorage
-        delete axios.defaults.headers.common['Authorization']; // Remove default authorization header
+        localStorage.removeItem('user');
+        localStorage.removeItem('authToken');
+        delete axios.defaults.headers.common['Authorization'];
     };
 
-    const updateAddress = (newAddress) => {
-        const updatedUser = { ...user, address: newAddress };
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser)); // Update user in localStorage
+    const updateUser = (freshUserData) => {
+        const cleanUser = {
+            ...freshUserData,
+            loginTime: user?.loginTime || new Date().getTime()
+        };
+        localStorage.removeItem('user'); 
+        setUser(cleanUser);
+        localStorage.setItem('user', JSON.stringify(cleanUser));
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated, login, logout, updateAddress }}>
+        <AuthContext.Provider value={{ user, isAuthenticated, login, logout, updateUser }}>
             {children}
         </AuthContext.Provider>
     );
@@ -52,8 +57,6 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
+    if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
     return context;
 };

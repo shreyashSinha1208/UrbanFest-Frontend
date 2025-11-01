@@ -19,7 +19,6 @@ export default function CartTotal({ totalPrice }) {
       setPriceleft(0);
     }
 
-    // Calculate the final total (after discount and adding shipping fee)
     const finalTotalValue = totalPrice - discountValue + shippingFee;
     setFinalTotal(finalTotalValue);
   }, [totalPrice, shippingFee]);
@@ -31,7 +30,7 @@ export default function CartTotal({ totalPrice }) {
   return (
     <>
       {totalPrice > 0 && (
-        <div className="cart-total sticky border-2 shadow-sm border-gray-300 font-inter rounded-xl bg-[#F9F1E7] pt-5 px-10">
+        <div className="cart-total sticky border shadow-sm border-gray-300  rounded-xl bg-[#F9F1E7] pt-5 px-5">
           <h1 className="text-xl text-center font-bold">Cart Totals</h1>
           <div className="flex justify-between mt-10">
             <p className="text-md tracking-tight">Subtotal</p>
@@ -58,8 +57,8 @@ export default function CartTotal({ totalPrice }) {
             </p>
           </div>
           {(priceleft > 0 &&
-            <div className="flex justify-between mt-5">
-              <p className='text-center'>Add more items of worth ₹ {priceleft.toLocaleString('en-IN')} to get free shipping!!</p>
+            <div className="flex justify-center items-center mt-5">
+              <p className='text-center font-semibold tracking-tight text-green-600'>Add ₹ {priceleft.toLocaleString('en-IN')} worth of items to get free shipping.</p>
             </div>
           )}
           <div className="flex justify-center py-6">

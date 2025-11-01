@@ -3,24 +3,28 @@ import Logo from '../assets/Logo.png';
 import LoginImage from '../assets/LoginImage.png';
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { motion } from 'framer-motion';
 
 export default function SignUpScreen() {
-
           const [username, setUsername] = useState('');
           const [email, setEmail] = useState('');
           const [password, setPassword] = useState('');
-          const [errorMessage, setErrorMessage] = useState(''); // State for error messages
-          const [googleLoading, setgoogleLoading] = useState(false);
-          const [emaiLoading, setEmailLoading] = useState(false);
-          const [showNotification, setShowNotification] = useState(false);// State for loader
+          const [googleLoading, setGoogleLoading] = useState(false);
+          const [emailLoading, setEmailLoading] = useState(false);
+          const [showNotification, setShowNotification] = useState(false);
+          const [message, setMessage] = useState('');
           const { login } = useAuth();
           const navigate = useNavigate();
 
-          const googlePress = () => {
-                    setgoogleLoading(true);
-                    googleLogin();
+          const showErrorNotification = (msg) => {
+                    setMessage(msg);
+                    setShowNotification(true);
+                    setTimeout(() => {
+                              setShowNotification(false);
+                              setMessage('');
+                    }, 3000);
           };
 
           const googleLogin = useGoogleLogin({
@@ -28,133 +32,156 @@ export default function SignUpScreen() {
                               try {
                                         const res = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
                                                   headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-                                        }, { withCredentials: true });
+                                        });
 
-                                        const response = await axios.post('https://urbanfest.onrender.com/login', {
+                                        const response = await axios.post('  https://urbanfest.onrender.com/signup', {
                                                   sub: res.data.sub,
                                                   name: res.data.name,
                                                   email: res.data.email,
-                                                  picture: res.data.picture,
-                                                  token: tokenResponse.access_token // Send token to the backend
+                                                  picture: res.data.picture
                                         }, { withCredentials: true });
 
                                         const { user, token } = response.data;
                                         login(user, token);
-                                        navigate("/", { state: { message: `Logged in as ${response.data.user.email}` } });
+                                        navigate("/", { state: { message: `Signed up as ${user.email}` } });
                               } catch (err) {
-                                        console.log("Error detected:", err);
+                                        console.log("Google signup error:", err);
+                                        const errorMsg = err.response?.data?.message || "Google sign up failed. Please try again.";
+                                        showErrorNotification(errorMsg);
                               } finally {
-                                        setgoogleLoading(false);
+                                        setGoogleLoading(false);
                               }
+                    },
+                    onError: (error) => {
+                              console.log("Google signup error:", error);
+                              showErrorNotification("Google sign up cancelled or failed.");
+                              setGoogleLoading(false);
                     }
           });
 
-
-          const showErrorNotification = (msg) => {
-                    setErrorMessage(msg);
-                    setShowNotification(true);
-                    setTimeout(() => {
-                              setShowNotification(false);
-                    }, 3000); // Notification disappears after 3 seconds
+          const googlePress = () => {
+                    setGoogleLoading(true);
+                    googleLogin();
           };
 
-          const handleSignUp = async () => {
+          const handleSignUp = async (e) => {
+                    e.preventDefault();
 
-
+                    // Validation
                     if (!username || !email || !password) {
-                              showErrorNotification("Incomplete credentials. Please fill all fields.");
+                              showErrorNotification("Please fill in all fields.");
                               return;
                     }
+
+                    if (username.length < 3) {
+                              showErrorNotification("Username must be at least 3 characters long.");
+                              return;
+                    }
+
                     if (!email.includes('@')) {
-                              showErrorNotification("Invalid email format. Must contain '@'.");
+                              showErrorNotification("Please enter a valid email address.");
                               return;
                     }
+
                     if (password.length < 8) {
-                              showErrorNotification("Password must be at least 8 characters!");
+                              showErrorNotification("Password must be at least 8 characters long.");
                               return;
                     }
+
                     setEmailLoading(true);
                     try {
-                              const response = await axios.post('https://urbanfest.onrender.com/login', {
+                              const response = await axios.post('  https://urbanfest.onrender.com/signup', {
                                         name: username,
                                         email: email,
                                         password: password,
                               }, { withCredentials: true });
+
                               const { user, token } = response.data;
                               login(user, token);
-                              console.log('User data:', user);
-
                               navigate("/", { state: { message: `Signed up as ${user.email}` } });
                     } catch (err) {
-                              console.error("Error detected: ", err.response ? err.response.data : err.message);
-                              setErrorMessage('Sign-up failed. Please try again.');
+                              console.log("Sign up error:", err);
+                              const errorMsg = err.response?.data?.message || "Sign up failed. Please try again.";
+                              showErrorNotification(errorMsg);
                     } finally {
                               setEmailLoading(false);
                     }
           };
 
-
           return (
                     <div>
-
                               {showNotification && (
-                                        <div className="fixed top-10 left-1/2 transform -translate-x-1/2 bg-[#B88E2F] text-white px-4 py-2 font-inter z-50">
-                                                  {errorMessage}
-                                        </div>
+                                        <motion.div
+                                                  initial={{ y: -100, opacity: 0 }}
+                                                  animate={{ y: 0, opacity: 1 }}
+                                                  exit={{ y: -100, opacity: 0 }}
+                                                  className="fixed left-1/2 -translate-x-1/2 top-6 z-50 bg-[#B88E2F] text-white px-4 py-2 rounded-lg text-sm"
+                                        >
+                                                  {message}
+                                        </motion.div>
                               )}
-                              <div className="grid grid-cols-1 mx-5 lg:mx-0 lg:grid-cols-2 gap-0 font-inter">
+                              <div className="grid grid-cols-1 mx-5 lg:mx-0 lg:grid-cols-2 gap-0 ">
                                         <div className="loginScreen">
-                                                  <div className="min-h-screen pt-16 text-gray-900 flex lg:items-start justify-center ">
-                                                            <div className="max-w-md w-full bg-white sm:rounded-lglg:pr-7">
+                                                  <div className="min-h-screen pt-16 text-gray-900 flex lg:items-start justify-center">
+                                                            <div className="max-w-md w-full  sm:rounded-lg lg:pr-7">
                                                                       <div className="logo-img mb-5 h-12 w-16">
                                                                                 <img src={Logo} alt="Logo-Image" />
                                                                       </div>
                                                                       <h1 className="text-2xl xl:text-3xl mb-5 font-bold tracking-tighter">
-                                                                                Sign Up to UrbanFest
+                                                                                Sign Up to UrbanFest.
                                                                       </h1>
 
                                                                       <div className="space-y-6">
-                                                                                <div className="space-y-5">
+                                                                                <form onSubmit={handleSignUp} className="space-y-5">
                                                                                           <input
-                                                                                                    className="w-full px-4 py-[8px] shadow-sm border-[2px] border-gray-200 rounded-lg font-medium placeholder-gray-500 text-sm focus:outline-none focus:border-[#B88E2F]"
+                                                                                                    className="w-full px-4 py-[8px]  border border-gray-200 rounded-lg font-medium placeholder-gray-500 text-sm focus:outline-none focus:border-[#B88E2F]"
                                                                                                     type="text"
                                                                                                     placeholder="Username"
                                                                                                     value={username}
-                                                                                                    onChange={(e) => setUsername(e.target.value)} />
+                                                                                                    onChange={(e) => setUsername(e.target.value)}
+                                                                                                    disabled={emailLoading}
+                                                                                          />
                                                                                           <input
-                                                                                                    className="w-full px-4 py-[8px] shadow-sm border-[2px] border-gray-200 rounded-lg font-medium placeholder-gray-500 text-sm focus:outline-none focus:border-[#B88E2F]"
+                                                                                                    className="w-full px-4 py-[8px]  border border-gray-200 rounded-lg font-medium placeholder-gray-500 text-sm focus:outline-none focus:border-[#B88E2F]"
                                                                                                     type="email"
                                                                                                     placeholder="Email"
                                                                                                     value={email}
-                                                                                                    onChange={(e) => setEmail(e.target.value)} />
+                                                                                                    onChange={(e) => setEmail(e.target.value)}
+                                                                                                    disabled={emailLoading}
+                                                                                          />
                                                                                           <input
-                                                                                                    className="w-full px-4 py-[8px] shadow-sm rounded-lg border-2 border-gray-200  font-medium placeholder-gray-500 text-sm focus:outline-none focus:border-[#B88E2F]"
+                                                                                                    className="w-full px-4 py-[8px]  rounded-lg border border-gray-200 font-medium placeholder-gray-500 text-sm focus:outline-none focus:border-[#B88E2F]"
                                                                                                     type="password"
                                                                                                     placeholder="Password"
                                                                                                     value={password}
-                                                                                                    onChange={(e) => setPassword(e.target.value)} />
+                                                                                                    onChange={(e) => setPassword(e.target.value)}
+                                                                                                    disabled={emailLoading}
+                                                                                          />
 
                                                                                           <button
-                                                                                                    onClick={handleSignUp}
-                                                                                                    className="mt-5 tracking-wide font-semibold bg-[#B88E2F] text-gray-100 w-full py-2 rounded-lg hover:bg-[#a0740e] transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none">
-                                                                                                    {emaiLoading ? (
+                                                                                                    type="submit"
+                                                                                                    disabled={emailLoading}
+                                                                                                    className="mt-5 tracking-wide font-semibold bg-[#B88E2F] text-gray-100 w-full py-2 rounded-lg hover:bg-[#a0740e] transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+                                                                                                    {emailLoading ? (
                                                                                                               <div className='py-1'>
                                                                                                                         <div className="border-4 border-white border-t-transparent rounded-full w-6 h-6 animate-spin"></div>
                                                                                                               </div>
                                                                                                     ) : (
-                                                                                                              <span className="ml-3 tracking-tighter">Sign In</span>
+                                                                                                              <span className="ml-3 tracking-tighter">Sign Up</span>
                                                                                                     )}
                                                                                           </button>
 
-                                                                                          <div className="continue flex justify-between items-center">
-                                                                                                    <div><hr className='bg-black w-20 lg:w-40' /></div>
-                                                                                                    <div><p className='lg:text-sm font-semibold'>Or continue with</p></div>
-                                                                                                    <div><hr className='bg-black w-20 lg:w-40' /></div>
+                                                                                          <div className="continue flex items-center gap-3">
+                                                                                                    <hr className='flex-1 bg-gray-300 h-[1px] border-0' />
+                                                                                                    <p className='text-xs lg:text-sm font-semibold text-gray-600 whitespace-nowrap tracking-tight'>Or continue with</p>
+                                                                                                    <hr className='flex-1 bg-gray-300 h-[1px] border-0' />
                                                                                           </div>
 
                                                                                           <button
+                                                                                                    type="button"
                                                                                                     onClick={googlePress}
-                                                                                                    className="w-full font-bold px-4 py-[3px] shadow-sm rounded-lg border-2 border-gray-300 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out focus:outline-none hover:shadow hover:border-[#B88E2F]">
+                                                                                                    disabled={googleLoading}
+                                                                                                    className="w-full font-bold px-4 py-[3px]  rounded-lg border border-gray-300 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out focus:outline-none hover:shadow hover:border-[#B88E2F] disabled:opacity-50 disabled:cursor-not-allowed">
                                                                                                     {googleLoading ? (
                                                                                                               <div className='py-1'>
                                                                                                                         <div className="border-4 border-[#B88E2F] border-t-transparent rounded-full w-6 h-6 animate-spin"></div>
@@ -181,24 +208,31 @@ export default function SignUpScreen() {
                                                                                                                                             />
                                                                                                                                   </svg>
                                                                                                                         </div>
-                                                                                                                        <span className="ml-1">Sign In with Google</span>
+                                                                                                                        <span className="ml-1 tracking-tight">Sign Up with Google</span>
                                                                                                               </>
                                                                                                     )}
                                                                                           </button>
 
-                                                                                          <p className="text-xs font-medium text-gray-600 text-center">
-                                                                                                    I agree to abide by UrbanFest's Terms of Service and its Privacy Policy.
+                                                                                          <p className="text-xs font-medium tracking-tight text-gray-600 text-center">
+                                                                                                    Already have an account? <Link to="/login" className="text-[#B88E2F] hover:underline">Sign In</Link>
                                                                                           </p>
-                                                                                </div>
+
+
+                                                                                </form>
                                                                       </div>
                                                             </div>
                                                   </div>
                                         </div>
 
                                         <div className="loginImage lg:block hidden">
-                                                  <img src={LoginImage} style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 100%, 0 100%)' }} className='h-screen object-cover w-full' alt="Login-Image" />
+                                                  <img
+                                                            src={LoginImage}
+                                                            style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 100%, 0 100%)' }}
+                                                            className='h-screen object-cover w-full'
+                                                            alt="Login-Image"
+                                                  />
                                         </div>
                               </div>
                     </div>
-          )
-};
+          );
+}

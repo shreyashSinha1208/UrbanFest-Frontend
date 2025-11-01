@@ -1,72 +1,114 @@
-
 import { FaTrash } from 'react-icons/fa6';
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import EmptyCart from '../assets/EmptyCart.png';
 import CartTotal from './CartTotal';
 import LoadingScreen from '../LoadingScreen/LoadingScreen.jsx';
 import { useAuth } from '../AuthContext';
 import { useNavigate } from 'react-router-dom';
-
+import Lottie from 'lottie-react';
+import emptyWishlistAnimation from '../assets/Empty.json'
 
 export default function CartScreen() {
-          // Initialize state as an empty array
           const navigate = useNavigate();
           const [cartItems, setCartItems] = useState([]);
           const [price, setPrice] = useState(0);
           const [loading, setLoading] = useState(true);
-          const { user, logout } = useAuth();
+          const { user, updateUser } = useAuth();
 
-          const calculateTotalPrice = (items) => {
-                    const total = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-                    setPrice(total);
+          const fetchCartItems = async () => {
+                    try {
+                              const response = await axios.get('  https://urbanfest.onrender.com/cart', {
+                                        withCredentials: true,
+                                        headers: {
+                                                  Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+                                        },
+                              });
+                              
+                              const items = response.data || [];
+                              setCartItems(items);
+                              const total = items.reduce(
+                                        (acc, item) => acc + item.productId.price * item.quantity,
+                                        0
+                              );
+                              setPrice(total);
+
+                    } catch (error) {
+                              console.log('Error fetching cart items:', error);
+                    }
           };
+
 
           useEffect(() => {
                     if (!user) {
                               navigate('/login', { state: { message: "Please login to access cart" } });
                               return;
                     }
-                    axios.get(`https://urbanfest.onrender.com/cart`,
-                              {
+
+                    fetchCartItems().finally(() => {
+                              setTimeout(() => {
+                                        setLoading(false);
+                              }, 500);
+                    });
+          }, [user, navigate]);
+
+
+          const handledeleteItem = async (cartItemId) => {
+                    try {     
+                              const response = await axios.delete(`  https://urbanfest.onrender.com/cart/${cartItemId}`, {
                                         withCredentials: true,
                                         headers: {
                                                   Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-                                        }
-                              }
-                    )
-                              .then((response) => {
-                                        setCartItems(response.data);
-                                        calculateTotalPrice(response.data);
-                              })
-                              .catch((error) => {
-                                        console.log(error);
-                              })
-                              .finally(() => {
-                                        // Set a timeout of 500ms before stopping the loader
-                                        setTimeout(() => {
-                                                  setLoading(false);
-                                        }, 500);
+                                        },
                               });
-          }, []);
+                              const updatedUser = response.data.user;
+                              updateUser(updatedUser);
+                              await fetchCartItems();
+                    } catch (error) {
+                              console.log('Error deleting cart item:', error);
+                    }
+          };
 
-          const handledeleteItem = async (id) => {
-                    setLoading(true); // Start loading when deleting an item
-                    await axios.delete(`https://urbanfest.onrender.com/cart/${id}`,
-                              { withCredentials: true, }
-                    )
-                              .then((response) => {
-                                        setCartItems(response.data);
-                                        window.location.href = `/cart`;
-                              })
-                              .catch((error) => {
-                                        console.log(error);
-                              })
-                              .finally(() => {
-                                        setTimeout(() => {
-                                                  setLoading(false);
-                                        }, 500);
-                              });
+
+          const containerVariants = {
+                    hidden: { opacity: 0 },
+                    visible: {
+                              opacity: 1,
+                              transition: {
+                                        staggerChildren: 0.1
+                              }
+                    }
+          };
+
+          const itemVariants = {
+                    hidden: { opacity: 0, y: 20 },
+                    visible: {
+                              opacity: 1,
+                              y: 0,
+                              transition: {
+                                        duration: 0.4,
+                                        ease: "easeOut"
+                              }
+                    },
+                    exit: {
+                              opacity: 0,
+                              x: -100,
+                              transition: {
+                                        duration: 0.3
+                              }
+                    }
+          };
+
+          const headerVariants = {
+                    hidden: { opacity: 0, y: -20 },
+                    visible: {
+                              opacity: 1,
+                              y: 0,
+                              transition: {
+                                        duration: 0.5
+                              }
+                    }
           };
 
           return (
@@ -74,121 +116,201 @@ export default function CartScreen() {
                               {loading ? (
                                         <LoadingScreen />
                               ) : (
-                                        <div className="lg:flex justify-between lg:gap-10 mt-12 mb-20 mx-5 lg:mx-20 font-inter">
-                                                  <div className="product-desc w-full lg:w-8/12">
-                                                            <div className="lg:flex hidden flex-col items-center justify-between">
-                                                                      <div className="lg:flex w-full items-center rounded-xl border-2 border-gray-300 justify-between bg-[#F9F1E7] mb-5 py-4 px-3">
-                                                                                <div className='flex items-center w-[37%]'>
-                                                                                          <p className="font-semibold  text-black">Item</p>
-                                                                                </div>
-                                                                                <div>
-                                                                                          <p className="font-semibold text-black">Price(₹)</p>
-                                                                                </div>
-                                                                                <div>
-                                                                                          <p className="font-semibold text-black">Color</p>
-                                                                                </div>
-                                                                                <div >
-                                                                                          <div className="quantity">
-                                                                                                    <p className="font-semibold text-black">Quantity</p>
+                                        <motion.div
+                                                  initial="hidden"
+                                                  animate="visible"
+                                                  variants={containerVariants}
+                                                  className={` px-4 md:px-8 py-8 lg:px-20 bg-white ${cartItems.length > 0 ? 'lg:flex justify-between lg:gap-10' : ''}`}
+                                        >
+                                                  <div className={`product-desc ${cartItems.length > 0 ? 'w-full lg:w-8/12' : 'w-full'}`}>
+                                                            {cartItems.length > 0 ? (
+                                                                      <>
+                                                                                {/* Desktop Header */}
+                                                                                <motion.div
+                                                                                          variants={headerVariants}
+                                                                                          className="lg:flex hidden flex-col items-center justify-between"
+                                                                                >
+                                                                                          <div className="lg:flex w-full items-center rounded-xl border border-gray-300 justify-between bg-[#F9F1E7] mb-5 py-4 px-3">
+                                                                                                    <div className='flex items-center w-[37%]'>
+                                                                                                              <p className="font-semibold text-black">Item</p>
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                              <p className="font-semibold text-black">Price(₹)</p>
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                              <p className="font-semibold text-black">Color</p>
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                              <div className="quantity">
+                                                                                                                        <p className="font-semibold text-black">Quantity</p>
+                                                                                                              </div>
+                                                                                                    </div>
+                                                                                                    <div className='w-[15%]'>
+                                                                                                              <p className="font-semibold text-black">SubTotal</p>
+                                                                                                    </div>
                                                                                           </div>
-                                                                                </div>
-                                                                                <div className='w-[15%]'>
-                                                                                          <p className="font-semibold text-black">SubTotal</p>
-                                                                                </div>
-                                                                      </div>
-                                                            </div>
-                                                            <div className="mt-2 lg:flex flex-col items-center justify-between cursor-pointer">
-                                                                      {cartItems.length > 0 ? (
-                                                                                cartItems.map((item, index) => (
-                                                                                          <div
-                                                                                                    key={index}
-                                                                                                    className="flex flex-col lg:flex-row w-full lg:items-center justify-between mb-5 py-2 lg:py-4 px-3 border-2 rounded-2xl"
-                                                                                          >
-                                                                                                    <div className="flex lg:items-center w-full lg:w-[35%] mb-4 lg:mb-0">
-                                                                                                              <img
-                                                                                                                        className="h-24 w-24 lg:h-32 lg:w-32 rounded-xl"
-                                                                                                                        src={item.img}
-                                                                                                                        alt="product-image"
-                                                                                                              />
-                                                                                                              <span>&nbsp;&nbsp;&nbsp;</span>
-                                                                                                              <div className="description">
-                                                                                                                        <p className="font-medium text-gray-400 lg:mb-0">
-                                                                                                                                  {item.name} <span>[{item.size}]</span></p>
-                                                                                                                        <div className="flex  mt-5">
-                                                                                                                                  <div> <span className='lg:hidden block font-semibold text-gray-400'>₹ {(parseInt(item.price)).toLocaleString()}
-                                                                                                                                            &nbsp;&nbsp;&nbsp;  </span></div>
-                                                                                                                                  <div className=" rounded-full lg:hidden inline-block cursor-pointer h-5 w-5 lg:mx-0"
-                                                                                                                                            style={{ backgroundColor: item.color }}
-                                                                                                                                  ></div>
+                                                                                </motion.div>
+
+                                                                                {/* Cart Items */}
+                                                                                <div className="pt-2 lg:flex flex-col items-center justify-between">
+                                                                                          <AnimatePresence mode="popLayout">
+                                                                                                    {cartItems.map((item, index) => (
+                                                                                                              <motion.div
+                                                                                                                        key={item._id}
+                                                                                                                        variants={itemVariants}
+                                                                                                                        initial="hidden"
+                                                                                                                        animate="visible"
+                                                                                                                        exit="exit"
+                                                                                                                        layout
+                                                                                                                        className="flex flex-col lg:flex-row w-full lg:items-center justify-between mb-4 md:mb-5 p-4 md:p-5 lg:py-4 lg:px-3 border rounded-2xl bg-white"
+                                                                                                              >
+                                                                                                                        {/* Mobile/Tablet Layout */}
+                                                                                                                        <div className="lg:hidden w-full">
+                                                                                                                                  {/* Product Image and Name */}
+                                                                                                                                  <div className="flex items-start gap-4 mb-4">
+                                                                                                                                            <motion.img
+                                                                                                                                                      whileHover={{ scale: 1.05 }}
+                                                                                                                                                      transition={{ duration: 0.2 }}
+                                                                                                                                                      className="h-24 w-24 md:h-28 md:w-28 rounded-xl object-cover flex-shrink-0 border"
+                                                                                                                                                      src={item.productId.img}
+                                                                                                                                                      alt="product-image"
+                                                                                                                                            />
+                                                                                                                                            <div className="flex-1 min-w-0">
+                                                                                                                                                      <p className="font-bold text-gray-800 text-base md:text-lg mb-2 line-clamp-2 tracking-tight">
+                                                                                                                                                                {item.productId.name}
+                                                                                                                                                      </p>
+                                                                                                                                                      <p className="text-sm text-gray-500 mb-2">Size: <span className='tracking-tighter fold-bold text-gray-800'>{item.size}</span></p>
+                                                                                                                                                      <div className="flex items-center gap-2">
+                                                                                                                                                                <span className="text-xs text-gray-500">Color:</span>
+                                                                                                                                                                <motion.div
+                                                                                                                                                                          whileHover={{ scale: 1.2 }}
+                                                                                                                                                                          className="rounded-full h-6 w-6 border-2 border-gray-300"
+                                                                                                                                                                          style={{ backgroundColor: item.color }}
+                                                                                                                                                                ></motion.div>
+                                                                                                                                                      </div>
+                                                                                                                                            </div>
+                                                                                                                                  </div>
+
+                                                                                                                                  {/* Price and Quantity Row */}
+                                                                                                                                  <div className="flex items-center justify-between mb-2 pb-4 border-b border-gray-200">
+                                                                                                                                            <div>
+                                                                                                                                                      <p className="text-xs text-gray-500 mb-1">Unit Price</p>
+                                                                                                                                                      <p className="font-semibold text-gray-700 text-base md:text-lg">
+                                                                                                                                                                ₹{(parseInt(item.productId.price)).toLocaleString('en-IN')}
+                                                                                                                                                      </p>
+                                                                                                                                            </div>
+                                                                                                                                            <div>
+                                                                                                                                                      <p className="text-xs text-gray-500 mb-1 text-center">Quantity</p>
+                                                                                                                                                                <p className="font-semibold text-gray-800 text-base text-center">{item.quantity}</p>
+                                                                                                                                                      
+                                                                                                                                            </div>
+                                                                                                                                  </div>
+
+                                                                                                                                  {/* Subtotal and Delete Row */}
+                                                                                                                                  <div className="flex items-center justify-between">
+                                                                                                                                            <div>
+                                                                                                                                                      <p className="text-xs text-gray-500 mb-1">Subtotal</p>
+                                                                                                                                                      <p className="font-bold text-black text-lg md:text-xl">
+                                                                                                                                                                ₹{(item.productId.price * item.quantity).toLocaleString('en-IN')}
+                                                                                                                                                      </p>
+                                                                                                                                            </div>
+                                                                                                                                            <motion.button
+                                                                                                                                                      whileHover={{ scale: 1.1 }}
+                                                                                                                                                      whileTap={{ scale: 0.9 }}
+                                                                                                                                                      onClick={() => handledeleteItem(item._id)}
+                                                                                                                                                      className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                                                                                                                                            >
+                                                                                                                                                      <FaTrash className="text-sm" />
+                                                                                                                                                      <span className="text-sm font-medium">Remove</span>
+                                                                                                                                            </motion.button>
+                                                                                                                                  </div>
                                                                                                                         </div>
 
-
-
-                                                                                                              </div>
-
-
-
-                                                                                                    </div>
-
-                                                                                                    <div className="w-full lg:w-[10%] mb-4 lg:block hidden lg:mb-0 text-center lg:text-left">
-                                                                                                              <p className="font-semibold text-gray-400 tracking-tight">
-                                                                                                                        ₹ {(parseInt(item.price)).toLocaleString()}
-                                                                                                              </p>
-                                                                                                    </div>
-
-                                                                                                    <div className="mb-4 lg:block hidden lg:mb-0">
-                                                                                                              <div
-                                                                                                                        className="rounded-full cursor-pointer h-5 w-5 mx-auto lg:mx-0"
-                                                                                                                        style={{ backgroundColor: item.color }}
-                                                                                                              ></div>
-                                                                                                    </div>
-
-                                                                                                    <div className="w-full flex justify-start items-center text-center lg:w-auto lg:mb-0 lg:text-left">
-                                                                                                              <div className="w-4/12 lg:w-full quantity border-[2px] lg:h-full h-[30%] px-3 py-1 rounded-lg border-gray-400">
-                                                                                                                        <p className="font-medium text-gray-800">{item.quantity}</p>
-                                                                                                              </div>
-                                                                                                              <div>
-                                                                                                                        <span className='lg:hidden inline text-xl font-bold ml-12 text-black'>
-                                                                                                                                  ₹ {(item.price * item.quantity).toLocaleString()}&nbsp;&nbsp;
-                                                                                                                                  <span className="text-[#B88E2F] cursor-pointer">
-                                                                                                                                            <FaTrash
-                                                                                                                                                      onClick={() => handledeleteItem(item._id)}
-                                                                                                                                                      className="inline-block"
+                                                                                                                        {/* Desktop Layout */}
+                                                                                                                        <div className="hidden lg:flex w-full items-center justify-between">
+                                                                                                                                  <div className="flex items-center w-[35%]">
+                                                                                                                                            <motion.img
+                                                                                                                                                      whileHover={{ scale: 1.05 }}
+                                                                                                                                                      transition={{ duration: 0.2 }}
+                                                                                                                                                      className="h-32 w-32 rounded-xl object-cover"
+                                                                                                                                                      src={item.productId.img}
+                                                                                                                                                      alt="product-image"
                                                                                                                                             />
-                                                                                                                                  </span>
-                                                                                                                        </span>
-                                                                                                              </div>
-                                                                                                    </div>
+                                                                                                                                            <div className="ml-4">
+                                                                                                                                                      <p className="font-medium text-gray-400">
+                                                                                                                                                                {item.productId.name} <span>[{item.size}]</span>
+                                                                                                                                                      </p>
+                                                                                                                                            </div>
+                                                                                                                                  </div>
 
-                                                                                                    <div className="lg:block hidden lg:w-[15%] text-center lg:text-left">
-                                                                                                              <p className="font-medium text-black tracking-tight">
-                                                                                                                        ₹ {(item.price * item.quantity).toLocaleString()}&nbsp;&nbsp;
-                                                                                                                        <span className="text-[#B88E2F] cursor-pointer">
-                                                                                                                                  <FaTrash
-                                                                                                                                            onClick={() => handledeleteItem(item._id)}
-                                                                                                                                            className="inline-block"
-                                                                                                                                  />
-                                                                                                                        </span>
-                                                                                                              </p>
-                                                                                                    </div>
-                                                                                          </div>
-                                                                                ))
-                                                                      ) : (
-                                                                                <div className="flex items-center mt-10 justify-center h-full">
-                                                                                          <img
-                                                                                                    src={EmptyCart}
-                                                                                                    className="h-24 w-24 animate-ping object-contain"
-                                                                                                    alt="EmptyCart-gif"
-                                                                                          />
+                                                                                                                                  <div className="w-[10%] text-center">
+                                                                                                                                            <p className="font-semibold text-gray-400 tracking-tight">
+                                                                                                                                                      ₹{(parseInt(item.productId.price)).toLocaleString('en-IN')}
+                                                                                                                                            </p>
+                                                                                                                                  </div>
+
+                                                                                                                                  <div>
+                                                                                                                                            <motion.div
+                                                                                                                                                      whileHover={{ scale: 1.2 }}
+                                                                                                                                                      className="rounded-full h-5 w-5"
+                                                                                                                                                      style={{ backgroundColor: item.color }}
+                                                                                                                                            ></motion.div>
+                                                                                                                                  </div>
+
+                                                                                                                                  <div className="text-center">
+                                                                                                                                            <div className="border-2 px-3 py-1 rounded-lg border-gray-400 inline-block">
+                                                                                                                                                      <p className="font-medium text-gray-800">{item.quantity}</p>
+                                                                                                                                            </div>
+                                                                                                                                  </div>
+
+                                                                                                                                  <div className="w-[15%] text-center">
+                                                                                                                                            <p className="font-medium text-black tracking-tight">
+                                                                                                                                                      ₹{(item.productId.price * item.quantity).toLocaleString('en-IN')}
+                                                                                                                                                      &nbsp;&nbsp;
+                                                                                                                                                      <motion.span
+                                                                                                                                                                whileHover={{ scale: 1.2 }}
+                                                                                                                                                                whileTap={{ scale: 0.9 }}
+                                                                                                                                                                className="text-[#B88E2F] cursor-pointer"
+                                                                                                                                                      >
+                                                                                                                                                                <FaTrash
+                                                                                                                                                                          onClick={() => handledeleteItem(item._id)}
+                                                                                                                                                                          className="inline-block"
+                                                                                                                                                                />
+                                                                                                                                                      </motion.span>
+                                                                                                                                            </p>
+                                                                                                                                  </div>
+                                                                                                                        </div>
+                                                                                                              </motion.div>
+                                                                                                    ))}
+                                                                                          </AnimatePresence>
                                                                                 </div>
-                                                                      )}
-                                                            </div>
-
+                                                                      </>
+                                                            ) : (
+                                                                      <motion.div
+                                                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                                transition={{ duration: 0.5 }}
+                                                                                className="flex flex-col justify-center pt-8 items-center h-[50vh] w-full"
+                                                                      >
+                                                                                <Lottie
+                                                                                          animationData={emptyWishlistAnimation}
+                                                                                          loop={true}
+                                                                                          style={{ width: 300, height: 300 }}
+                                                                                />
+                                                                      </motion.div>
+                                                            )}
                                                   </div>
-                                                  <div className='lg:w-4/12 w-full'>
-                                                            <CartTotal totalPrice={price} />
-                                                  </div>
-                                        </div>
+                                                  {cartItems.length > 0 && (
+                                                            <motion.div
+                                                                      initial={{ opacity: 0, x: 20 }}
+                                                                      animate={{ opacity: 1, x: 0 }}
+                                                                      transition={{ duration: 0.5, delay: 0.2 }}
+                                                                      className='lg:w-4/12 w-full mt-10 lg:mt-0'
+                                                            >
+                                                                      <CartTotal totalPrice={price} />
+                                                            </motion.div>
+                                                  )}
+                                        </motion.div>
                               )}
                     </div>
           );

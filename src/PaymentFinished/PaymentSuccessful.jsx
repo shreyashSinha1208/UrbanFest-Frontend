@@ -5,6 +5,7 @@ import LoadingScreen from '../LoadingScreen/LoadingScreen';
 import { format } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../AuthContext';
 
 export default function PaymentSuccessful() {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function PaymentSuccessful() {
     const location = useLocation();
     const token = localStorage.getItem('authToken');
     const { state } = location;
+    const { updateUser} = useAuth();
 
 
     const message = state?.message || "No message available";
@@ -26,29 +28,30 @@ export default function PaymentSuccessful() {
 
         if (orderId) {
             // Send request to update order status
-            axios.post(`https://urbanfest.onrender.com/payment/success/${orderId}`,{} , {withCredentials: true},  {
+            const response = axios.post(`https://urbanfest.onrender.com/payment/success/${orderId}`, {}, { withCredentials: true }, {
                 headers: {
-                  Authorization: `Bearer ${token}`, // Include the JWT token in the request headers
+                    Authorization: `Bearer ${token}`, // Include the JWT token in the request headers
                 },
-      },
-      
+            },
+
             )
                 .then(response => {
                     if (response.data.success) {
-                        console.log('Order status updated successfully');
+                        updateUser(response.data.user);
                     } else {
                         console.log('Order already processed or other issue');
                     }
                 })
+
                 .catch(error => {
-                    console.error('Error updating order status:', error);
+                    console.log('Error updating order status:', error);
                 });
         }
 
         if (!message) {
             navigate('/');
         }
-        
+
         const loadingTimer = setTimeout(() => {
             setLoading(false);
         }, 3000);
@@ -69,7 +72,7 @@ export default function PaymentSuccessful() {
     }
 
     return (
-        <div className="flex flex-col font-inter justify-center items-center min-h-screen space-y-6">
+        <div className="flex flex-col  justify-center items-center min-h-screen space-y-6">
             <div className="success-animation">
                 <svg
                     className="checkmark"

@@ -1,113 +1,169 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
+import { Package } from 'lucide-react';
 import LoadingScreen from '../LoadingScreen/LoadingScreen';
 import { useAuth } from '../AuthContext';
-import ReactToPrint from 'react-to-print';
+import OrderCard from './OrderCard';
+import RatingPopup from './RatingPopup';
 
 export default function OrderScreen() {
-          const [orders, setOrders] = useState([]);
-          const [loading, setLoading] = useState(true);
-          const { user } = useAuth();
-          const componentRefs = useRef([]);
-          const token = localStorage.getItem('authToken');
-          console.log(token);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedOrder, setExpandedOrder] = useState(null);
+  const [ratingPopup, setRatingPopup] = useState({ isOpen: false, product: null, orderId: null });
+  const { user } = useAuth();
+  const token = localStorage.getItem('authToken');
 
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('  https://urbanfest.onrender.com/orders',
+          { headers: { Authorization: `Bearer ${token}` }, withCredentials: true });
 
-          useEffect(() => {
+        const sortedOrders = response.data.orders.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-                    const loadingTimer = setTimeout(() => {
-                              setLoading(false);
-                    }, 1000);
+        setOrders(sortedOrders);
+      } catch (error) {
+        console.log('Error fetching orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, [token]);
 
-                    const fetchOrders = async () => {
-                              try {
-                                        const response = await axios.get('https://urbanfest.onrender.com/orders',
-                                                  { headers: { Authorization: `Bearer ${token}`, }, withCredentials: true });
-                                        const sortedOrders = response.data.orders.sort((a, b) => new Date(b.date) - new Date(a.date));
-                                        console.log(response.data);
-                                        setOrders(sortedOrders);
-                              } catch (error) {
-                                        console.error('Error fetching orders:', error);
-                              }
-                    };
+  const formatDate = (date) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(date).toLocaleDateString(undefined, options);
+  };
 
-                    fetchOrders();
-          }, []);
+  const formatShortDate = (date) => {
+    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+    return new Date(date).toLocaleDateString(undefined, options);
+  };
 
-          // Helper function to format date
-          const formatDate = (date) => {
-                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                    return new Date(date).toLocaleDateString(undefined, options);
-          };
+  const calculateDeliveredByDate = (orderDate) => {
+    const date = new Date(orderDate);
+    date.setDate(date.getDate() + 7);
+    return date;
+  };
 
-          // Helper function to calculate delivered by date
-          const calculateDeliveredByDate = (orderDate) => {
-                    const date = new Date(orderDate);
-                    date.setDate(date.getDate() + 5);
-                    return formatDate(date);
-          };
+  const getOrderProgress = (orderDate) => {
+    const now = new Date();
+    const ordered = new Date(orderDate);
+    const daysSinceOrder = Math.floor((now - ordered) / (1000 * 60 * 60 * 24));
 
-          if (loading) {
-                    return <LoadingScreen />;
-          }
+    if (daysSinceOrder < 2) return 'ordered';
+    if (daysSinceOrder < 5) return 'shipped';
+    if (daysSinceOrder >= 7) return 'delivered';
+    return 'in-transit';
+  };
 
-          return (
-                    <div className="lg:flex lg:justify-between mb-5 lg:ml-5 font-inter">
-                              <div className="order-desc w-full">
-                                        <h1 className='text-3xl text-[#B88E2F] font-bold tracking-tighter mb-5'>Recent Orders</h1>
-                                        <div className="lg:flex flex-col w-full items-center justify-between">
-                                                  {orders.length > 0 ? (
-                                                            orders.map((order, index) => (
-                                                                      <div key={index} ref={(el) => (componentRefs.current[index] = el)} className="border p-4 w-full rounded-md mb-6">
-                                                                                <div className="flex justify-between items-center mb-4 px-4">
-                                                                                          <p className={`font-semibold text-lg tracking-tighter ${order.status === false ? "text-red-500" : "text-black"}`}>
-                                                                                                    Order ID:&nbsp;#{order.orderId} {order.status === false ? " [Payment Failed]" : ""}
-                                                                                          </p>
-                                                                                          {order.status === true && <ReactToPrint
-                                                                                                    trigger={() => <button className="bg-[#F9F1E7] text-black border font-bold px-4 py-1 rounded">Get Invoice</button>}
-                                                                                                    content={() => componentRefs.current[index]}
-                                                                                          />}
+  const openRatingPopup = (product, orderId) => {
+    setRatingPopup({ isOpen: true, product, orderId });
+  };
 
-                                                                                          <p className="text-gray-600 font-semibold text-sm">{formatDate(order.date)}</p>
-                                                                                </div>
-                                                                                <div className="flex flex-col space-y-4">
-                                                                                          <div className="flex items-center justify-between bg-[#F9F1E7] p-4 rounded-lg">
-                                                                                                    <p className="w-[30%] font-semibold">Item Name</p>
-                                                                                                    <p className="w-[20%] font-semibold">Color</p>
-                                                                                                    <p className="w-[15%] font-semibold">Quantity</p>
-                                                                                                    <p className="w-[18%] font-semibold">Price</p>
-                                                                                                    <p className="w-[15%] font-semibold">Subtotal</p>
-                                                                                          </div>
-                                                                                          {order.cartItems.length > 0 ? (
-                                                                                                    order.cartItems.map((item, itemIndex) => (
-                                                                                                              <div key={itemIndex} className="flex items-center justify-between p-4 border-2 rounded-lg">
-                                                                                                                        <p className="w-[33%] tracking-tighter font-semibold ">{item.name} [{item.size}]</p>
-                                                                                                                        <div className="w-[20%]">
-                                                                                                                                  <div
-                                                                                                                                            className="rounded-full h-5 w-5"
-                                                                                                                                            style={{ backgroundColor: item.color }}
-                                                                                                                                  ></div>
-                                                                                                                        </div>
-                                                                                                                        <p className="w-[15%] ">{item.quantity}</p>
-                                                                                                                        <p className="w-[18%] tracking-tight font-semibold">₹ {(parseInt(item.price)).toLocaleString('en-IN')}</p>
-                                                                                                                        <p className="w-[15%] tracking-tight font-bold">₹ {(item.quantity * item.price).toLocaleString('en-IN')}</p>
-                                                                                                              </div>
-                                                                                                    ))
-                                                                                          ) : (
-                                                                                                    <p className="text-gray-500">No items in this order.</p>
-                                                                                          )}
-                                                                                </div>
-                                                                                <div className="flex justify-between px-4 items-center mt-4">
-                                                                                          <p className="font-semibold text-black">{order.status === true ? "Paid: " : "Pending: "} <span className='text-[#B88E2F]'> ₹{parseInt(order.totalPrice).toLocaleString('en-IN')}</span></p>
-                                                                                          {order.status === true && <p className="font-semibold text-sm text-gray-600">Delivery by: {calculateDeliveredByDate(order.date)}</p>}
-                                                                                </div>
-                                                                      </div>
-                                                            ))
-                                                  ) : (
-                                                            <p className='text-gray-500 tracking-tighter'>No orders found.</p>
-                                                  )}
-                                        </div>
-                              </div>
-                    </div>
-          );
+  const closeRatingPopup = () => {
+    setRatingPopup({ isOpen: false, product: null, orderId: null });
+  };
+
+  const handleSubmitRating = async (rating, reviewText) => {
+    const response = await axios.post('https://urbanfest.onrender.com/createReview', {
+      productId: ratingPopup.product.productId._id,
+      orderId: ratingPopup.orderId,
+      rating: rating,
+      reviewText: reviewText,
+    }, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+
+    setOrders(prevOrders => prevOrders.map(order => {
+      if (order.orderId === ratingPopup.orderId) {
+        return {
+          ...order,
+          cartItems: order.cartItems.map(item =>
+            item.productId._id === ratingPopup.product.productId._id
+              ? { ...item, reviewId: response.data.review }
+              : item
+          )
+        };
+      }
+      return order;
+    }));
+  };
+
+  const toggleOrder = (index) => {
+    setExpandedOrder(expandedOrder === index ? null : index);
+  };
+
+  if (loading) {
+    return (
+
+      <LoadingScreen />
+
+    );
+  }
+
+  return (
+    <div className="md:rounded-xl md:border md:border-gray-200 ">
+      <motion.div className='md:p-6 md:border-b border-gray-100'
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h2 className="text-2xl text-center md:text-left font-bold text-gray-800 tracking-tight mb-1 md:mb-2">Order History</h2>
+        <p className="text-sm text-gray-500 text-center md:text-left tracking-tight">View and track all your orders.</p>
+      </motion.div>
+
+      {/* Orders List */}
+      <div className="md:p-4 md:mt-0 mt-10">
+        {orders.length > 0 ? (
+          orders.map((order, index) => (
+            <OrderCard
+              key={index}
+              order={order}
+              index={index}
+              isExpanded={expandedOrder === index}
+              onToggle={() => toggleOrder(index)}
+              onOpenRating={openRatingPopup}
+              formatDate={formatDate}
+              formatShortDate={formatShortDate}
+              calculateDeliveredByDate={calculateDeliveredByDate}
+              getOrderProgress={getOrderProgress}
+            />
+          ))
+        ) : (
+          <motion.div
+            className="bg-white rounded-lg border border-gray-200 p-12 text-center"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            <motion.div
+              initial={{ y: -10 }}
+              animate={{ y: 0 }}
+              transition={{ repeat: Infinity, duration: 2, repeatType: "reverse" }}
+            >
+              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            </motion.div>
+            <p className="text-gray-900 font-medium text-lg">No orders found</p>
+            <p className="text-gray-500 text-sm mt-2">
+              Your order history will appear here once you make a purchase
+            </p>
+          </motion.div>
+        )}
+
+      </div>
+
+      {/* Rating Popup Modal */}
+      <RatingPopup
+        ratingPopup={ratingPopup}
+        onClose={closeRatingPopup}
+        onSubmit={handleSubmitRating}
+      />
+    </div>
+  );
 }

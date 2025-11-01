@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import LoadingScreen from './LoadingScreen/LoadingScreen.jsx';
 import Navbar from './LandingScreens/Navbar.jsx';
@@ -16,42 +16,17 @@ import CartFooter from './CartScreens/CartFooter.jsx';
 import ProfileScreen from './ProfileSection/ProfileScreen.jsx';
 import AboutScreen from './AboutScreens/AboutScreen.jsx';
 import SignUpScreen from './LoginSection/SignUpScreen.jsx';
-import BrowseRange from './MiddleSection/BrowseRange';
 import Product from './MiddleSection/Product';
 import ParentCarousel from './MiddleSection/ParentCarousel';
 import Hero from './LandingScreens/Hero';
 import Testimonials from './MiddleSection/Testimonials';
 import BlogsScreen from './AboutScreens/BlogsScreen.jsx';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import CartSuggestions from './CartScreens/CartSuggestions.jsx';
+import ScrollToTop from './ScrollTop.jsx';
 
 const AppRoutes = ({ loading }) => {
-
-          const navigate = useNavigate();
-
-          // useEffect(() => {
-          //           const checkSession = async () => {
-          //                     try {
-          //                               const response = await axios.get('https://urbanfest.onrender.com/check', {
-          //                                         withCredentials: true,
-          //                               });
-
-          //                               const data = response.data;
-          //                               console.log("Session data:", data.sessionActive);
-          //                               console.log(response.data);    
-          //                               // if (!data.sessionActive) {
-          //                               //           localStorage.removeItem('user');
-          //                               //           navigate('/login');
-          //                               // }
-          //                     } catch (error) {
-          //                               console.error('Error checking session:', error);
-          //                     }
-          //           };
-
-          //           checkSession();
-          // }, [navigate]);
-
           return (
+
                     <Routes>
                               <Route
                                         path="/"
@@ -62,7 +37,6 @@ const AppRoutes = ({ loading }) => {
                                                                       <ParentCarousel />
                                                             </div>
                                                             <Hero />
-                                                            <BrowseRange />
                                                             <Product />
                                                             <div className="hidden lg:block">
                                                                       <ParentCarousel />
@@ -78,15 +52,24 @@ const AppRoutes = ({ loading }) => {
                               />
                               <Route
                                         path="/blogs"
-                                        element={loading ? <LoadingScreen /> : <>
-                                                  <Navbar />
-                                                  <BlogsScreen />
-                                        </>}
-
+                                        element={loading ? <LoadingScreen /> : (
+                                                  <>
+                                                            <Navbar />
+                                                            <BlogsScreen />
+                                                            <Footer />
+                                                  </>
+                                        )}
                               />
                               <Route
                                         path="/about"
-                                        element={loading ? <LoadingScreen /> : <AboutScreen />}
+                                        element={loading ? <LoadingScreen /> :
+                                                  <>
+                                                            <Navbar />
+                                                            <AboutScreen />
+                                                            <Footer />
+                                                  </>
+
+                                        }
                               />
                               <Route
                                         path="/signup"
@@ -98,6 +81,7 @@ const AppRoutes = ({ loading }) => {
                                                   <>
                                                             <Navbar />
                                                             <Show />
+                                                            <Footer />
                                                   </>
                                         )}
                               />
@@ -107,6 +91,7 @@ const AppRoutes = ({ loading }) => {
                                                   <>
                                                             <Navbar />
                                                             <Wishlist />
+                                                            <Footer />
                                                   </>
                                         )}
                               />
@@ -142,6 +127,7 @@ const AppRoutes = ({ loading }) => {
                                                   <>
                                                             <Navbar />
                                                             <CartHeader />
+                                                            <CartSuggestions />
                                                             <CartScreen />
                                                             <CartFooter />
                                                             <Footer />
@@ -150,13 +136,13 @@ const AppRoutes = ({ loading }) => {
                               />
                               <Route
                                         path="/profile/:section"
-                                        element={
+                                        element={loading ? <LoadingScreen /> : (
                                                   <>
                                                             <Navbar />
                                                             <ProfileScreen />
                                                             <Footer />
                                                   </>
-                                        }
+                                        )}
                               />
                               <Route
                                         path="/profile"
@@ -169,6 +155,7 @@ const AppRoutes = ({ loading }) => {
                                         )}
                               />
                     </Routes>
+
           );
 };
 
