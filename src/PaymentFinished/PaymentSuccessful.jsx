@@ -33,8 +33,7 @@ export default function PaymentSuccessful() {
                     Authorization: `Bearer ${token}`, // Include the JWT token in the request headers
                 },
             },
-
-            )
+        )
                 .then(response => {
                     if (response.data.success) {
                         updateUser(response.data.user);
