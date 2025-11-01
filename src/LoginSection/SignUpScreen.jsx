@@ -34,7 +34,7 @@ export default function SignUpScreen() {
                                                   headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
                                         });
 
-                                        const response = await axios.post('https://urbanfest.onrender.com/signup', {
+                                        const response = await axios.post('https://urbanfest.onrender.com/login', {
                                                   sub: res.data.sub,
                                                   name: res.data.name,
                                                   email: res.data.email,
@@ -90,7 +90,7 @@ export default function SignUpScreen() {
 
                     setEmailLoading(true);
                     try {
-                              const response = await axios.post('https://urbanfest.onrender.com/signup', {
+                              const response = await axios.post('https://urbanfest.onrender.com/login', {
                                         name: username,
                                         email: email,
                                         password: password,
