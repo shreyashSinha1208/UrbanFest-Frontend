@@ -19,7 +19,7 @@ export default function OrderScreen() {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:5000/orders',
+        const response = await axios.get('https://urbanfest.onrender.com/orders',
           { headers: { Authorization: `Bearer ${token}` }, withCredentials: true });
 
         const sortedOrders = response.data.orders.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -70,7 +70,7 @@ export default function OrderScreen() {
   };
 
   const handleSubmitRating = async (rating, reviewText) => {
-    const response = await axios.post('http://localhost:5000/createReview', {
+    const response = await axios.post('https://urbanfest.onrender.com/createReview', {
       productId: ratingPopup.product.productId._id,
       orderId: ratingPopup.orderId,
       rating: rating,

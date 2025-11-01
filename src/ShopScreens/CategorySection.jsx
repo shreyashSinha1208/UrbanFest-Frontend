@@ -45,14 +45,14 @@ const CategorySection = ({ category, products, showProduct, wishlist, setWishlis
 
     try {
       if (isInWishlist) {
-        const response = await axios.delete(`http://localhost:5000/wishlist/${product._id}`, {
+        const response = await axios.delete(`https://urbanfest.onrender.com/wishlist/${product._id}`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
         updateUser(response.data.user);
       } else {
         const response = await axios.post(
-          'http://localhost:5000/wishlist',
+          'https://urbanfest.onrender.com/wishlist',
           { productId: product._id },
           {
             headers: { Authorization: `Bearer ${token}` },

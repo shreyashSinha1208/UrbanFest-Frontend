@@ -36,7 +36,7 @@ export default function Show() {
   useEffect(() => {
     setIsLoading(true);
     axios
-      .get(`http://localhost:5000/products/show/${productId}`, {
+      .get(`https://urbanfest.onrender.com/products/show/${productId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -67,7 +67,7 @@ export default function Show() {
 
   const checkCartAndWishlistStatus = async (productData) => {
     try {
-      const cartRes = await axios.get('http://localhost:5000/cart', {
+      const cartRes = await axios.get('https://urbanfest.onrender.com/cart', {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
@@ -87,7 +87,7 @@ export default function Show() {
         setCartItemId(null);
       }
 
-      const wishlistRes = await axios.get('http://localhost:5000/wishlist', {
+      const wishlistRes = await axios.get('https://urbanfest.onrender.com/wishlist', {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
@@ -132,7 +132,7 @@ export default function Show() {
     setIsCartLoading(true);
     try {
       if (isInCart && cartItemId) {
-        const response = await axios.delete(`http://localhost:5000/cart/${cartItemId}`, {
+        const response = await axios.delete(`https://urbanfest.onrender.com/cart/${cartItemId}`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
@@ -141,7 +141,7 @@ export default function Show() {
         setCartItemId(null);
       } else {
         const response = await axios.post(
-          'http://localhost:5000/cart',
+          'https://urbanfest.onrender.com/cart',
           {
             productId: product._id,
             color: selectedColor,
@@ -168,7 +168,7 @@ export default function Show() {
     try {
       if (isInWishlist) {
         console.log(product._id)
-        const response = await axios.delete(`http://localhost:5000/wishlist/${product._id}`, {
+        const response = await axios.delete(`https://urbanfest.onrender.com/wishlist/${product._id}`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
@@ -177,7 +177,7 @@ export default function Show() {
         setWishlistItemId(null);
       } else {
         const response = await axios.post(
-          'http://localhost:5000/wishlist',
+          'https://urbanfest.onrender.com/wishlist',
           { productId: product._id },
           {
             headers: { Authorization: `Bearer ${token}` },

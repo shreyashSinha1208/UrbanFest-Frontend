@@ -39,7 +39,7 @@ const ProfileScreen = () => {
         try {
             setLoading(true);
             console.log('Updating user with data:', updatedUser);
-            const response = await axios.put(`http://localhost:5000/update/${user._id}`, updatedUser, { withCredentials: true });
+            const response = await axios.put(`https://urbanfest.onrender.com/update/${user._id}`, updatedUser, { withCredentials: true });
             updateUser(response.data.user);
             console.log(user)
             setLoading(false);
@@ -76,7 +76,7 @@ const ProfileScreen = () => {
 
         try {
             const response = await axios.put(
-                `http://localhost:5000/update/${user._id}`,
+                `https://urbanfest.onrender.com/update/${user._id}`,
                 formData,
                 {
                     withCredentials: true,

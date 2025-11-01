@@ -31,7 +31,7 @@ export default function PaymentSuccessful() {
 
             try {
                 const response = await axios.post(
-                    `http://localhost:5000/payment/success/${orderId}`,
+                    `https://urbanfest.onrender.com/payment/success/${orderId}`,
                     {},
                     {
                         withCredentials: true,
