@@ -26,28 +26,31 @@ export default function PaymentSuccessful() {
 
     useEffect(() => {
 
-        if (orderId) {
-            // Send request to update order status
-            const response = axios.post(`https://urbanfest.onrender.com/payment/success/${orderId}`, {}, {
-                withCredentials: true,
-                headers: {
-                    Authorization: `Bearer ${token}`, // Include the JWT token in the request headers
-                },
-            },
+        const updateOrderStatus = async () => {
+            if (!orderId) return;
 
-            )
-                .then(response => {
-                    if (response.data.success) {
-                        updateUser(response.data.user);
-                    } else {
-                        console.log('Order already processed or other issue');
+            try {
+                const response = await axios.post(
+                    `https://urbanfest.onrender.com/payment/success/${orderId}`,
+                    {
+                        withCredentials: true,
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
                     }
-                })
+                );
 
-                .catch(error => {
-                    console.log('Error updating order status:', error);
-                });
-        }
+                if (response.data.success) {
+                    updateUser(response.data.user);
+                } else {
+                    console.log('Order already processed or other issue');
+                }
+            } catch (error) {
+                console.log('Error updating order status:', error);
+            }
+        };
+
+        updateOrderStatus();
 
         if (!message) {
             navigate('/');
