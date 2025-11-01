@@ -76,7 +76,7 @@ const ProfileScreen = () => {
 
         try {
             const response = await axios.put(
-                `  https://urbanfest.onrender.com/update/${user._id}`,
+                ` https://urbanfest.onrender.com/update/${user._id}`,
                 formData,
                 {
                     withCredentials: true,
