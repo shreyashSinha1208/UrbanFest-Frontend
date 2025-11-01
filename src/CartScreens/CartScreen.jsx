@@ -19,7 +19,7 @@ export default function CartScreen() {
 
           const fetchCartItems = async () => {
                     try {
-                              const response = await axios.get(' https://urbanfest.onrender.com/cart', {
+                              const response = await axios.get('https://urbanfest.onrender.com/cart', {
                                         withCredentials: true,
                                         headers: {
                                                   Authorization: `Bearer ${localStorage.getItem('authToken')}`,
@@ -56,7 +56,7 @@ export default function CartScreen() {
 
           const handledeleteItem = async (cartItemId) => {
                     try {     
-                              const response = await axios.delete(` https://urbanfest.onrender.com/cart/${cartItemId}`, {
+                              const response = await axios.delete(`https://urbanfest.onrender.com/cart/${cartItemId}`, {
                                         withCredentials: true,
                                         headers: {
                                                   Authorization: `Bearer ${localStorage.getItem('authToken')}`,

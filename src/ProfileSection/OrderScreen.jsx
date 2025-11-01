@@ -19,7 +19,7 @@ export default function OrderScreen() {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(' https://urbanfest.onrender.com/orders',
+        const response = await axios.get('https://urbanfest.onrender.com/orders',
           { headers: { Authorization: `Bearer ${token}` }, withCredentials: true });
 
         const sortedOrders = response.data.orders.sort((a, b) => new Date(b.date) - new Date(a.date));

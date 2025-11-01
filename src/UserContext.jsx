@@ -12,7 +12,7 @@ export const UserProvider = ({ children }) => {
                     const fetchCurrentUser = async () => {
                               try {
                                         setLoading(true);
-                                        const response = await axios.get(' https://urbanfest.onrender.com/user',
+                                        const response = await axios.get('https://urbanfest.onrender.com/user',
                                                   {
                                                             headers: { Authorization: `Bearer ${token}`, },
                                                             withCredentials: true

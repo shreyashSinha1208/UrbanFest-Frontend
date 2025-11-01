@@ -55,7 +55,7 @@ export default function LoginScreen() {
                                                   },
                                         });
 
-                                        const response = await axios.post(' https://urbanfest.onrender.com/login', {
+                                        const response = await axios.post('https://urbanfest.onrender.com/login', {
                                                   sub: res.data.sub,
                                                   name: res.data.name,
                                                   email: res.data.email,
@@ -100,7 +100,7 @@ export default function LoginScreen() {
 
                     setEmailLoading(true);
                     try {
-                              const response = await axios.post(' https://urbanfest.onrender.com/login', {
+                              const response = await axios.post('https://urbanfest.onrender.com/login', {
                                         email,
                                         password
                               }, { withCredentials: true });
