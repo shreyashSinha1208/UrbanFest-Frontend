@@ -13,7 +13,7 @@ export default function PaymentSuccessful() {
     const location = useLocation();
     const token = localStorage.getItem('authToken');
     const { state } = location;
-    const { updateUser} = useAuth();
+    const { updateUser } = useAuth();
 
 
     const message = state?.message || "No message available";
@@ -28,12 +28,14 @@ export default function PaymentSuccessful() {
 
         if (orderId) {
             // Send request to update order status
-            const response = axios.post(`https://urbanfest.onrender.com/payment/success/${orderId}`, {}, { withCredentials: true }, {
+            const response = axios.post(`https://urbanfest.onrender.com/payment/success/${orderId}`, {}, {
+                withCredentials: true,
                 headers: {
                     Authorization: `Bearer ${token}`, // Include the JWT token in the request headers
                 },
             },
-        )
+
+            )
                 .then(response => {
                     if (response.data.success) {
                         updateUser(response.data.user);
