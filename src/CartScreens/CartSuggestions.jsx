@@ -80,7 +80,8 @@ export default function CartSuggestions() {
   useEffect(() => {
     if (!user) {
       navigate('/login', {
-        state: { message: 'Please login to view your wishlist' }
+        state: { message: 'Please login to view your wishlist' },
+        replace: true
       });
       return;
     }
@@ -88,10 +89,9 @@ export default function CartSuggestions() {
   }, [user?.cartItems, navigate]);
 
   const ShowProduct = (id) => {
-    window.location.href = `/products/show/${id}`;
-  }
+    navigate(`/products/show/${id}`);
+  };
 
-  // Hide component if loading or no products to show
   if (loading || products.length === 0) return null;
 
   return (

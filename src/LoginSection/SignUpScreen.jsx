@@ -70,7 +70,7 @@ export default function SignUpScreen() {
                     // Validation
                     if (!username || !email || !password) {
                               showErrorNotification("Please fill in all fields.");
-                              return;
+                              return;ZAX
                     }
 
                     if (username.length < 3) {

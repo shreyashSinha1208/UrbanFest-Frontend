@@ -6,7 +6,7 @@ import EmptyCart from '../assets/EmptyCart.png';
 import CartTotal from './CartTotal';
 import LoadingScreen from '../LoadingScreen/LoadingScreen.jsx';
 import { useAuth } from '../AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { replace, useNavigate } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import emptyWishlistAnimation from '../assets/Empty.json'
 
@@ -42,7 +42,8 @@ export default function CartScreen() {
 
           useEffect(() => {
                     if (!user) {
-                              navigate('/login', { state: { message: "Please login to access cart" } });
+                              navigate('/login',
+                                        { state: { message: "Please login to access cart" }, replace: true });
                               return;
                     }
 

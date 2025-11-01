@@ -10,6 +10,7 @@ import Lottie from 'lottie-react';
 import EmptyWishList from '../assets/EmptyWishList.json';
 import WishListHeader from './WishListHeader';
 
+
 export default function Wishlist() {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +64,7 @@ export default function Wishlist() {
   useEffect(() => {
     if (!user) {
       navigate('/login', {
+        replace: true,
         state: { message: 'Please login to view your wishlist' }
       });
       return;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, replace } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { IoIosHeart, IoIosHeartEmpty } from 'react-icons/io';
@@ -25,7 +25,7 @@ export default function Show() {
   const [cartItemId, setCartItemId] = useState(null);
   const [wishlistItemId, setWishlistItemId] = useState(null);
   const [isError, setIsError] = useState(false);
-
+  const navigate = useNavigate();
   const [isCartLoading, setIsCartLoading] = useState(false);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
 
@@ -124,6 +124,11 @@ export default function Show() {
   const handleSizeSelect = (size) => setSelectedSize(size);
 
   const toggleCart = async () => {
+    if (!token) {
+      replace(true);
+      navigate('/login', { state: { message: 'Please login to access cart' } });
+      return;
+    }
     setIsCartLoading(true);
     try {
       if (isInCart && cartItemId) {
@@ -197,7 +202,7 @@ export default function Show() {
   // Show loading state
   if (isLoading) {
     return (
-       <LoadingScreen/>
+      <LoadingScreen />
     );
   }
 

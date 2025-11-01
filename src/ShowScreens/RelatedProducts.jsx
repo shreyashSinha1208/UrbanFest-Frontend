@@ -11,7 +11,7 @@ export default function RelatedProducts({ product }) {
   const token = localStorage.getItem('authToken');
   const [showLeftArrow1, setShowLeftArrow1] = useState(false);
   const [showRightArrow1, setShowRightArrow1] = useState(true);
-
+  const navigate = useNavigate();
   const { productId } = useParams();
   const scrollRef1 = useRef(null);
 
@@ -64,7 +64,7 @@ export default function RelatedProducts({ product }) {
     axios.get(`https://urbanfest.onrender.com/products/${product.category}`, {
       headers: {
         Authorization: `Bearer ${token}`,
-      }, 
+      },
       withCredentials: true
     }).then((response) => {
       const products = response.data.filter((item) => item._id !== productId);
@@ -76,8 +76,8 @@ export default function RelatedProducts({ product }) {
   }, [product.category, productId, token]);
 
   const ShowProduct = (id) => {
-    window.location.href = `/products/show/${id}`;
-  }
+    navigate(`/products/show/${id}`);
+  };
 
   // Don't render if no products or no category yet
   if (!product.category || products.length === 0) {
@@ -124,15 +124,15 @@ export default function RelatedProducts({ product }) {
                 <div className='absolute top-4 right-4 bg-[#B88E2F] text-white px-3 py-1 rounded-full text-sm font-semibold z-10'>
                   -{calculateDiscount(product.oldPrice, product.price)}%
                 </div>
-                
+
                 {/* Image */}
                 <div className='relative h-64 overflow-hidden bg-gray-100'>
-                  <img 
-                    src={product.img} 
-                    className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110' 
-                    alt={product.name} 
+                  <img
+                    src={product.img}
+                    className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110'
+                    alt={product.name}
                   />
-                  
+
                   {/* Hover Overlay - optional, remove if not needed */}
                   <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3'>
                     <div className='bg-white text-gray-800 p-3 rounded-full hover:bg-[#B88E2F] hover:text-white transition-colors duration-300'>
@@ -141,7 +141,7 @@ export default function RelatedProducts({ product }) {
                   </div>
                 </div>
               </div>
-              
+
               {/* Card Content */}
               <div className="p-4">
                 <h3 className='text-lg font-bold tracking-tight text-gray-800 mb-1 line-clamp-1 group-hover:text-[#B88E2F] transition-colors'>
