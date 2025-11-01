@@ -40,8 +40,11 @@ export default function PaymentSuccessful() {
                         },
                     }
                 );
-                console.log(response);
-                updateUser(response.data.user);
+                updateUser({
+                    ...user,
+                    cartItems: [],
+                });
+
                 console.log(user);
             } catch (error) {
                 console.log('Error updating order status:', error);
