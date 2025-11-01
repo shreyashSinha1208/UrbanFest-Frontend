@@ -2,7 +2,7 @@ import React from 'react';
 import Marquee from 'react-fast-marquee';
 import Person1 from '../assets/Udit.jpg';
 import Person2 from '../assets/Shaily2.jpg';
-import Person3 from '../assets/Akshat.jpeg'
+import Person3 from '../assets/akshat.jpeg'
 import { MdVerified } from "react-icons/md";
 
 export default function Testimonials() {
