@@ -40,12 +40,7 @@ export default function PaymentSuccessful() {
                         },
                     }
                 );
-
-                if (response.data.success) {
-                    updateUser(response.data.user);
-                } else {
-                    console.log('Order already processed or other issue');
-                }
+                updateUser(response.data.user);
             } catch (error) {
                 console.log('Error updating order status:', error);
             }
@@ -63,7 +58,7 @@ export default function PaymentSuccessful() {
 
         const redirectTimer = setTimeout(() => {
             navigate('/profile/orders');
-        }, 10000);
+        }, 5000);
 
 
         return () => {
