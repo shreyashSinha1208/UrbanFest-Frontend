@@ -38,7 +38,7 @@ export default function Navbar() {
 
             if (searchQuery.length > 0) {
                   try {
-                        const response = await axios.post('https://urbanfest.onrender.com/search', { query: searchQuery }, { withCredentials: true });
+                        const response = await axios.post('http://localhost:5000/search', { query: searchQuery }, { withCredentials: true });
                         setSuggestions(response.data);
                   } catch (error) {
                         console.log('Error fetching search results:', error);

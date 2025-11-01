@@ -61,7 +61,7 @@ export default function RelatedProducts({ product }) {
       return;
     }
 
-    axios.get(`https://urbanfest.onrender.com/products/${product.category}`, {
+    axios.get(`http://localhost:5000/products/${product.category}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

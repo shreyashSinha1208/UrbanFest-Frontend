@@ -30,7 +30,7 @@ export default function ShopScreen() {
                               setIsLoading(true);
 
                               try {
-                                        const response = await axios.get('https://urbanfest.onrender.com/products', {
+                                        const response = await axios.get('http://localhost:5000/products', {
                                                   headers: { Authorization: `Bearer ${token}` },
                                                   withCredentials: true
                                         });
@@ -65,7 +65,7 @@ export default function ShopScreen() {
                                         return;
                               }
                               try {
-                                        const response = await axios.get('https://urbanfest.onrender.com/wishlist', {
+                                        const response = await axios.get('http://localhost:5000/wishlist', {
                                                   headers: { Authorization: `Bearer ${token}` },
                                                   withCredentials: true
                                         });

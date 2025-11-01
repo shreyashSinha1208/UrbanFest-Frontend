@@ -47,7 +47,7 @@ export default function Wishlist() {
   // Fetch wishlist function
   const fetchWishlist = async () => {
     try {
-      const response = await axios.get('https://urbanfest.onrender.com/wishlist', {
+      const response = await axios.get('http://localhost:5000/wishlist', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -80,7 +80,7 @@ export default function Wishlist() {
   const removeFromWishlist = async (product) => {
     setLoadingProducts(prev => [...prev, product._id]);
     try {
-      const response = await axios.delete(`https://urbanfest.onrender.com/wishlist/${product._id}`, {
+      const response = await axios.delete(`http://localhost:5000/wishlist/${product._id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

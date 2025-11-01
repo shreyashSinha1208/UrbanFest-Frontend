@@ -63,7 +63,7 @@ export default function CartSuggestions() {
 
   const fetchWishlist = async () => {
     try {
-      const response = await axios.get('https://urbanfest.onrender.com/wishlist', {
+      const response = await axios.get('http://localhost:5000/wishlist', {
         headers: {
           Authorization: `Bearer ${token}`,
         },

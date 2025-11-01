@@ -17,7 +17,7 @@ export default function Product() {
 
   useEffect(() => {
     setIsLoading(true);
-    axios.get('https://urbanfest.onrender.com/products', { withCredentials: true })
+    axios.get('http://localhost:5000/products', { withCredentials: true })
       .then((response) => {
         const products = response.data;
         const randomNum = Math.floor(Math.random() * 32);

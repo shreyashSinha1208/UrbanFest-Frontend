@@ -37,7 +37,7 @@ const Footer = () => {
     try {
       setIsLoading(true);
       const response = await axios.post(
-        'https://urbanfest.onrender.com/subscription',
+        'http://localhost:5000/subscription',
         { email },
         { withCredentials: true }
       );

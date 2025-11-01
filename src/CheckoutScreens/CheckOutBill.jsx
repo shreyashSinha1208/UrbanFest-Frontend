@@ -38,13 +38,14 @@ export default function CheckOutBill({ selectedAddress }) {
 
     if (paymentMethod === 'cod') {
       try {
-        const orderResponse = await axios.post('https://urbanfest.onrender.com/payment', {
+        const orderResponse = await axios.post('http://localhost:5000/payment', {
           amount: totalPrice * 100,
           status: false,
           paymentMethod: 'cod',
         });
         const { order } = orderResponse.data;
         navigate('/payment/successful', { state: { message: 'Order Placed Successfully', orderId: order.orderId } });
+        return;
       } catch (error) {
         console.log('Error placing COD order:', error);
         setIsProcessing(false);
@@ -62,7 +63,7 @@ export default function CheckOutBill({ selectedAddress }) {
 
     try {
       const orderResponse = await axios.post(
-        'https://urbanfest.onrender.com/payment',
+        'http://localhost:5000/payment',
         {
           amount: totalPrice * 100,
           status: false,
@@ -125,7 +126,7 @@ export default function CheckOutBill({ selectedAddress }) {
     }
 
     axios
-      .get('https://urbanfest.onrender.com/cart', {
+      .get('http://localhost:5000/cart', {
         headers: {
           Authorization: `Bearer ${token}`,
         },

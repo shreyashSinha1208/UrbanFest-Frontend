@@ -13,7 +13,7 @@ export default function PaymentSuccessful() {
     const location = useLocation();
     const token = localStorage.getItem('authToken');
     const { state } = location;
-    const { updateUser } = useAuth();
+    const { updateUser, user } = useAuth();
 
 
     const message = state?.message || "No message available";
@@ -31,7 +31,7 @@ export default function PaymentSuccessful() {
 
             try {
                 const response = await axios.post(
-                    `https://urbanfest.onrender.com/payment/success/${orderId}`,
+                    `http://localhost:5000/payment/success/${orderId}`,
                     {},
                     {
                         withCredentials: true,
@@ -40,8 +40,9 @@ export default function PaymentSuccessful() {
                         },
                     }
                 );
-                console.log(response.data);
+                console.log(response);
                 updateUser(response.data.user);
+                console.log(user);
             } catch (error) {
                 console.log('Error updating order status:', error);
             }
@@ -55,11 +56,11 @@ export default function PaymentSuccessful() {
 
         const loadingTimer = setTimeout(() => {
             setLoading(false);
-        }, 3000);
+        }, 2000);
 
         const redirectTimer = setTimeout(() => {
             navigate('/profile/orders');
-        }, 5000);
+        }, 10000);
 
 
         return () => {
