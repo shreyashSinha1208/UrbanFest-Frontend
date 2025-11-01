@@ -3,6 +3,14 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { ArrowRight, Code, Database, Server, Zap } from 'lucide-react';
 
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
+  iconUrl: new URL('leaflet/dist/images/marker-icon.png', import.meta.url).href,
+  shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
+});
+
 const position = [12.9377152, 77.5612211];
 
 export default function AboutScreen() {
@@ -18,7 +26,7 @@ export default function AboutScreen() {
     { name: 'Express', icon: Zap, description: 'Fast Server' }
   ];
 
- 
+
 
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
